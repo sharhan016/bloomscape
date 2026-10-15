@@ -1,0 +1,8 @@
+.git
+.github
+dist
+node_modules
+.DS_Store
+*.log
+.env*
+reference nadeeda ui.png

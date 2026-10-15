@@ -1,0 +1,38 @@
+name: nadeeda-coming-soon
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nadeeda.rule=Host(`nadeeda.com`)
+      - traefik.http.routers.nadeeda.entrypoints=websecure
+      - traefik.http.routers.nadeeda.tls=true
+      - traefik.http.routers.nadeeda.tls.certresolver=letsencrypt
+      - traefik.http.routers.nadeeda.service=nadeeda
+      - traefik.http.routers.nadeeda-www.rule=Host(`www.nadeeda.com`)
+      - traefik.http.routers.nadeeda-www.entrypoints=websecure
+      - traefik.http.routers.nadeeda-www.tls=true
+      - traefik.http.routers.nadeeda-www.tls.certresolver=letsencrypt
+      - traefik.http.routers.nadeeda-www.service=nadeeda
+      - traefik.http.routers.nadeeda-www.middlewares=nadeeda-www-redirect
+      - traefik.http.middlewares.nadeeda-www-redirect.redirectregex.regex=^https?://www[.]nadeeda[.]com/(.*)
+      - traefik.http.middlewares.nadeeda-www-redirect.redirectregex.replacement=https://nadeeda.com/$${1}
+      - traefik.http.middlewares.nadeeda-www-redirect.redirectregex.permanent=true
+      - traefik.http.services.nadeeda.loadbalancer.server.port=3000
+    networks:
+      - application
+
+networks:
+  application:
